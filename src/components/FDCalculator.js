@@ -1,57 +1,12 @@
-//can you please help me with this code. I am trying to create a FD calculator using React. I have created the code but it is not working. Can you please help me with this code?. please use same UI and functionality. 
+// Code to calculate Fixed Deposit (FD) maturity amount and interest earned
 
-// 1. Create a new component named FDCalculator.js
-// 2. Copy and paste the following code into FDCalculator.js
-// 3. Run the code and test the functionality
-
-// Code:
-// import React, { useState } from "react";
-
-// function FDCalculator() {
-//   const [amount, setAmount] = useState("");
-//   const [rate, setRate] = useState("");
-//   const [years, setYears] = useState("");
-//   const [result, setResult] = useState(null);
-
-//   const calculateFD = () => {
-//     const maturity = amount * Math.pow(1 + rate / 100, years);
-//     setResult(maturity.toFixed(2));
-//   };
-
-//   return (
-//     <div className="container mt-5">
-//       <h2 className="text-center text-success"><i className="fas fa-coins"></i> FD Calculator</h2>
-//       <div className="card shadow p-4">
-//         <div className="mb-3">
-//           <label className="form-label"><i className="fas fa-rupee-sign"></i> Principal Amount</label>
-//           <input type="number" className="form-control" onChange={(e) => setAmount(e.target.value)} />
-//         </div>
-//         <div className="mb-3">
-//           <label className="form-label"><i className="fas fa-percentage"></i> Annual Interest Rate (%)</label>
-//           <input type="number" className="form-control" onChange={(e) => setRate(e.target.value)} />
-//         </div>
-//         <div className="mb-3">
-//           <label className="form-label"><i className="fas fa-hourglass-half"></i> Duration (Years)</label>
-//           <input type="number" className="form-control" onChange={(e) => setYears(e.target.value)} />
-//         </div>
-//         <button className="btn btn-success w-100" onClick={calculateFD}>
-//           <i className="fas fa-calculator"></i> Calculate
-//         </button>
-//         {result && <h3 className="mt-3 text-center"><i className="fas fa-wallet"></i> Maturity Amount: ₹{result}</h3>}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default FDCalculator;
-
-// 1. Create a new component named FDCalculator.js
-// 2. Copy and paste the following code into FDCalculator.js
-// 3. Run the code and test the functionality
-
-// Code:
 import React, { useState } from "react";
+import { Pie, Bar } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import "../animations.css";
+
+// Register the necessary components
+ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function FDCalculator() {
   const [amount, setAmount] = useState("");
@@ -60,6 +15,7 @@ function FDCalculator() {
   const [type, setType] = useState("compound"); // Default to Compound Interest
   const [frequency, setFrequency] = useState("annually"); // Default to Annually
   const [result, setResult] = useState(null);
+  const [interestEarned, setInterestEarned] = useState(null);
 
   const calculateFD = () => {
     const P = parseFloat(amount); // Principal amount
@@ -70,20 +26,41 @@ function FDCalculator() {
       let maturityAmount = 0;
 
       if (type === "simple") {
-        // Simple Interest Formula: M = P + (P * r * t / 100)
         maturityAmount = P + (P * r * t) / 100;
       } else {
-        // Compound Interest Formula
         let n = 1; // Default to annually
         if (frequency === "quarterly") n = 4;
-        // Compound Interest Formula: M = P * (1 + r/n / 100)^(n*t)
         maturityAmount = P * Math.pow(1 + r / (n * 100), n * t);
       }
 
+      const interest = maturityAmount - P;
       setResult(maturityAmount.toFixed(2));
+      setInterestEarned(interest.toFixed(2));
     } else {
       setResult(null);
+      setInterestEarned(null);
     }
+  };
+
+  const pieData = {
+    labels: ["Principal", "Interest Earned"],
+    datasets: [
+      {
+        data: [parseFloat(amount), parseFloat(interestEarned)],
+        backgroundColor: ["#36A2EB", "#FF6384"],
+      },
+    ],
+  };
+
+  const barData = {
+    labels: ["Principal", "Interest Earned", "Maturity Amount"],
+    datasets: [
+      {
+        label: "Amount (₹)",
+        data: [parseFloat(amount), parseFloat(interestEarned), parseFloat(result)],
+        backgroundColor: ["#36A2EB", "#FF6384", "#FFCE56"],
+      },
+    ],
   };
 
   return (
@@ -149,9 +126,20 @@ function FDCalculator() {
           <i className="fas fa-calculator"></i> Calculate
         </button>
         {result && (
-          <h3 className="mt-3 text-center">
-            <i className="fas fa-wallet"></i> Maturity Amount: ₹{result}
-          </h3>
+          <div className="mt-3 text-center">
+            <h3>
+              <i className="fas fa-wallet"></i> Maturity Amount: ₹{result}
+            </h3>
+            <h4>
+              <i className="fas fa-chart-line"></i> Interest Earned: ₹{interestEarned}
+            </h4>
+            <div className="mt-4">
+              <Pie data={pieData} width={300} height={300} />
+            </div>
+            <div className="mt-4">
+              <Bar data={barData} width={600} height={300} />
+            </div>
+          </div>
         )}
       </div>
     </div>
